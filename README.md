@@ -7,7 +7,9 @@ You need to prepare the text file in the following format:
 ***********
 An example of a file.txt
 ***********
-Leqselvi\n
-Ohtuvayre\n
+Leqselvi
+
+Ohtuvayre
+
 Xolremdi
 
