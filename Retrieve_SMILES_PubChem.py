@@ -50,7 +50,7 @@ def get_drug_info(drug_name):
         return None, None, None
 
 def main():
-    st.title("Bạn Upload file txt chứa tên Drug lên đây nhé!!!")
+    st.title("Upload file txt chứa tên Drug của bạn lên đây nhé!!!")
 
     
     uploaded_file = st.file_uploader("Upload a text file with drug names", type=["txt"])
