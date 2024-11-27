@@ -7,7 +7,7 @@ from time import sleep
 
 # Configure page
 st.set_page_config(
-    page_title="Drug Information Retriever",
+    page_title="TruongNguyen's Drug Information Retriever",
     page_icon="💊",
     layout="wide"
 )
@@ -78,7 +78,7 @@ def read_drug_names_from_file(uploaded_file):
 
 def main():
     # Title and description
-    st.title("💊 Drug Information Retriever")
+    st.title("💊 TruogNguyen's Drug Information Retriever")
     st.markdown("""
     Upload a text file containing drug names (one per line) to retrieve their:
     - Compound CID
@@ -155,7 +155,7 @@ def main():
     st.markdown("---")
     st.markdown("""
         <div style='text-align: center'>
-            <p>Made with ❤️ by Your Name</p>
+            <p>Made with ❤️ by Truong Nguyen</p>
         </div>
     """, unsafe_allow_html=True)
 
