@@ -1,30 +1,26 @@
 import requests
 import csv
 import streamlit as st
+import chardet  # Add this import
 import io
 
 def read_drug_names_from_file(uploaded_file):
     """Reads drug names from a file-like object, one per line."""
     try:
+        # Read a small portion of the file to detect encoding
+        raw_data = uploaded_file.read(1024)
+        result = chardet.detect(raw_data)
+        encoding = result['encoding']
+        
         # Reset file pointer to beginning
         uploaded_file.seek(0)
         
-        # Try different encodings
-        encodings = ['utf-8', 'latin-1', 'iso-8859-1']
+        # Read the entire file with detected encoding
+        content = uploaded_file.read().decode(encoding)
         
-        for encoding in encodings:
-            try:
-                content = uploaded_file.read().decode(encoding)
-                # Split content into lines and filter empty lines
-                drug_names = [line.strip() for line in content.splitlines() if line.strip()]
-                return drug_names
-            except UnicodeDecodeError:
-                # Reset file pointer for next attempt
-                uploaded_file.seek(0)
-                continue
-            
-        # If no encoding worked, raise an error
-        raise ValueError("Could not decode file with any supported encoding")
+        # Split content into lines and filter empty lines
+        drug_names = [line.strip() for line in content.splitlines() if line.strip()]
+        return drug_names
         
     except Exception as e:
         st.error(f"Error reading file: {str(e)}")
