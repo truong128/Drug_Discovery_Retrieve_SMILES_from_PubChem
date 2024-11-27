@@ -80,76 +80,119 @@ def main():
     # Title and description
     st.title("💊 TruongNguyen's Drug Information Retriever")
     st.markdown("""
-    Upload a text file containing drug names (one per line) to retrieve their:
+    Either upload a text file containing drug names (one per line) or enter a single drug name manually to retrieve their:
     - Compound CID
     - IUPAC Name
     - SMILES Structure
     """)
 
-    # File uploader
-    uploaded_file = st.file_uploader(
-        "Choose a text file containing drug names",
-        type=["txt"],
-        help="File should contain one drug name per line"
-    )
+    # Create tabs for different input methods
+    tab1, tab2 = st.tabs(["Upload File", "Manual Input"])
 
-    if uploaded_file is not None:
-        # Read drug names
-        with st.spinner("Reading file..."):
-            drug_names = read_drug_names_from_file(uploaded_file)
+    with tab1:
+        # File uploader (existing functionality)
+        uploaded_file = st.file_uploader(
+            "Choose a text file containing drug names",
+            type=["txt"],
+            help="File should contain one drug name per line"
+        )
 
-        if drug_names:
-            st.info(f"Found {len(drug_names)} drug names in the file")
-            
-            # Process button
-            if st.button("Process Drugs"):
-                drug_data = []
-                progress_text = st.empty()
-                progress_bar = st.progress(0)
+        if uploaded_file is not None:
+            # Read drug names
+            with st.spinner("Reading file..."):
+                drug_names = read_drug_names_from_file(uploaded_file)
+
+            if drug_names:
+                st.info(f"Found {len(drug_names)} drug names in the file")
                 
-                # Process each drug
-                for i, drug in enumerate(drug_names):
-                    progress_text.text(f"Processing {drug} ({i+1}/{len(drug_names)})")
+                # Process button
+                if st.button("Process Drugs"):
+                    drug_data = []
+                    progress_text = st.empty()
+                    progress_bar = st.progress(0)
                     
-                    cid, iupac_name, smiles = get_drug_info(drug)
-                    
-                    if any([cid, iupac_name, smiles]):
-                        drug_data.append([
-                            drug, 
-                            cid if cid else "Not found", 
-                            iupac_name if iupac_name else "Not found", 
-                            smiles if smiles else "Not found"
-                        ])
-                    
-                    # Update progress
-                    progress_bar.progress((i + 1) / len(drug_names))
-                    # Small delay to prevent rate limiting
-                    sleep(0.1)
+                    # Process each drug
+                    for i, drug in enumerate(drug_names):
+                        progress_text.text(f"Processing {drug} ({i+1}/{len(drug_names)})")
+                        
+                        cid, iupac_name, smiles = get_drug_info(drug)
+                        
+                        if any([cid, iupac_name, smiles]):
+                            drug_data.append([
+                                drug, 
+                                cid if cid else "Not found", 
+                                iupac_name if iupac_name else "Not found", 
+                                smiles if smiles else "Not found"
+                            ])
+                        
+                        # Update progress
+                        progress_bar.progress((i + 1) / len(drug_names))
+                        # Small delay to prevent rate limiting
+                        sleep(0.1)
 
-                progress_text.empty()
+                    progress_text.empty()
+                    
+                    if drug_data:
+                        # Create CSV in memory
+                        output = io.StringIO()
+                        writer = csv.writer(output)
+                        writer.writerow(["Drug Name", "Compound CID", "IUPAC Name", "SMILES"])
+                        writer.writerows(drug_data)
+                        
+                        # Convert to bytes for download
+                        csv_bytes = output.getvalue().encode('utf-8')
+                        
+                        # Show success message and download button
+                        st.success(f"Successfully processed {len(drug_data)} drugs!")
+                        st.download_button(
+                            label="📥 Download Results (CSV)",
+                            data=csv_bytes,
+                            file_name="Drug_Data_SMILES.csv",
+                            mime="text/csv"
+                        )
+                    else:
+                        st.error("No data could be retrieved for any of the drugs.")
+            else:
+                st.error("No drug names found in the uploaded file.")
+
+    with tab2:
+        # Manual input section
+        st.markdown("### Enter Drug Name Manually")
+        manual_drug = st.text_input("Enter drug name:", placeholder="e.g., Aspirin")
+        
+        if manual_drug and st.button("Process Single Drug"):
+            with st.spinner(f"Processing {manual_drug}..."):
+                cid, iupac_name, smiles = get_drug_info(manual_drug)
                 
-                if drug_data:
-                    # Create CSV in memory
+                if any([cid, iupac_name, smiles]):
+                    # Create a DataFrame for display
+                    st.success("Results found!")
+                    st.markdown("### Results:")
+                    st.markdown(f"**Drug Name:** {manual_drug}")
+                    st.markdown(f"**Compound CID:** {cid if cid else 'Not found'}")
+                    st.markdown(f"**IUPAC Name:** {iupac_name if iupac_name else 'Not found'}")
+                    st.markdown(f"**SMILES:** {smiles if smiles else 'Not found'}")
+                    
+                    # Create download button for single result
                     output = io.StringIO()
                     writer = csv.writer(output)
                     writer.writerow(["Drug Name", "Compound CID", "IUPAC Name", "SMILES"])
-                    writer.writerows(drug_data)
+                    writer.writerow([
+                        manual_drug,
+                        cid if cid else "Not found",
+                        iupac_name if iupac_name else "Not found",
+                        smiles if smiles else "Not found"
+                    ])
                     
-                    # Convert to bytes for download
                     csv_bytes = output.getvalue().encode('utf-8')
-                    
-                    # Show success message and download button
-                    st.success(f"Successfully processed {len(drug_data)} drugs!")
                     st.download_button(
-                        label="📥 Download Results (CSV)",
+                        label="📥 Download Single Result (CSV)",
                         data=csv_bytes,
-                        file_name="Drug_Data_SMILES.csv",
+                        file_name=f"{manual_drug}_data.csv",
                         mime="text/csv"
                     )
                 else:
-                    st.error("No data could be retrieved for any of the drugs.")
-        else:
-            st.error("No drug names found in the uploaded file.")
+                    st.error(f"No data found for {manual_drug}")
 
     # Add footer
     st.markdown("---")
@@ -158,6 +201,3 @@ def main():
             <p>Made with ❤️ by Truong Nguyen</p>
         </div>
     """, unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    main()
