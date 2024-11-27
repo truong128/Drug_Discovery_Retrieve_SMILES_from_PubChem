@@ -78,7 +78,7 @@ def read_drug_names_from_file(uploaded_file):
 
 def main():
     # Title and description
-    st.title("💊 TruogNguyen's Drug Information Retriever")
+    st.title("💊 TruongNguyen's Drug Information Retriever")
     st.markdown("""
     Upload a text file containing drug names (one per line) to retrieve their:
     - Compound CID
